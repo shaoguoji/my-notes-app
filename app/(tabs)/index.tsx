@@ -4,17 +4,40 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+interface Note {
+  id: string;
+  content: string;
+  timestamp: string;
+  tags: string[];
+}
 
 export default function MemoScreen() {
   const [noteText, setNoteText] = useState('');
+  const [notes, setNotes] = useState<Note[]>([]);
   const textColor = useThemeColor({}, 'text');
+  const backgroundColor = useThemeColor({}, 'background');
+  
+  function extractTags(content: string): string[] {
+    const matches = content.match(/#[\w\u4e00-\u9fa5]+/g);
+    return matches ? matches : [];
+  }
   
   const handleSend = () => {
     if (!noteText.trim()) {
       Alert.alert('提示', '请输入内容');
       return;
     }
-    // TODO: 处理发送逻辑
+
+    const newNote: Note = {
+      id: Date.now().toString(),
+      content: noteText.trim(),
+      timestamp: new Date().toLocaleString(),
+      tags: extractTags(noteText)
+    };
+
+    setNotes(prevNotes => [newNote, ...prevNotes]);
     setNoteText('');
   };
 
@@ -44,141 +67,127 @@ export default function MemoScreen() {
   };
   
   return (
-    <ThemedView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable 
-          onPress={() => Alert.alert('菜单', '菜单功能开发中')}
-          style={({ pressed }) => [
-            styles.headerButton,
-            pressed && styles.buttonPressed
-          ]}>
-          <Ionicons name="menu-outline" size={24} color={textColor} />
-        </Pressable>
-        <ThemedText type="title" style={styles.headerTitle}>MEMO</ThemedText>
-        <Pressable 
-          onPress={() => Alert.alert('搜索', '搜索功能开发中')}
-          style={({ pressed }) => [
-            styles.headerButton,
-            pressed && styles.buttonPressed
-          ]}>
-          <Ionicons name="search-outline" size={24} color={textColor} />
-        </Pressable>
-      </View>
-
-      <ScrollView style={styles.scrollView}>
-        {/* Editor Card */}
-        <View style={styles.editorCard}>
-          <TextInput
-            style={styles.input}
-            placeholder="What's in your mind?"
-            placeholderTextColor="#999"
-            multiline
-            value={noteText}
-            onChangeText={setNoteText}
-          />
-          
-          {/* Toolbar */}
-          <View style={styles.toolbar}>
-            <Pressable 
-              onPress={() => handleToolbarPress('hashtag')}
-              style={({ pressed }) => [
-                styles.toolbarButton,
-                pressed && styles.buttonPressed
-              ]}>
-              <ThemedText style={styles.hashTag}>#</ThemedText>
-            </Pressable>
-            <Pressable 
-              onPress={() => handleToolbarPress('list')}
-              style={({ pressed }) => [
-                styles.toolbarButton,
-                pressed && styles.buttonPressed
-              ]}>
-              <Ionicons name="list" size={24} color="#666" />
-            </Pressable>
-            <Pressable 
-              onPress={() => handleToolbarPress('bold')}
-              style={({ pressed }) => [
-                styles.toolbarButton,
-                pressed && styles.buttonPressed
-              ]}>
-              <ThemedText style={styles.boldB}>B</ThemedText>
-            </Pressable>
-            <Pressable 
-              onPress={() => handleToolbarPress('image')}
-              style={({ pressed }) => [
-                styles.toolbarButton,
-                pressed && styles.buttonPressed
-              ]}>
-              <Ionicons name="image-outline" size={24} color="#666" />
-            </Pressable>
-            <View style={styles.spacer} />
-            <Pressable 
-              onPress={handleSend}
-              style={({ pressed }) => [
-                styles.sendButton,
-                pressed && styles.sendButtonPressed
-              ]}>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Content Cards */}
-        <View style={styles.contentCard}>
-          <View style={styles.contentHeader}>
-            <ThemedText style={styles.timestamp}>2021-07-26 17:52:05</ThemedText>
-            <Pressable 
-              onPress={handleMoreOptions}
-              style={({ pressed }) => [
-                styles.moreButton,
-                pressed && styles.buttonPressed
-              ]}>
-              <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
-            </Pressable>
-          </View>
-          
-          <ThemedText style={styles.contentText}>
-            Normal is just a construct, and to the extent that you can see normal as a construct in yourself, you have freed yourself from the constraints of thinking this is the way the world is. Because it isn't. This is the way we are.
-          </ThemedText>
-
-          <View style={styles.tags}>
-            <Pressable>
-              <ThemedText style={styles.tag}>#Alan_kay</ThemedText>
-            </Pressable>
-            <Pressable>
-              <ThemedText style={styles.tag}>#QUOTE</ThemedText>
-            </Pressable>
-          </View>
-
-          <Pressable>
-            <ThemedText style={styles.link}>www.goodreads.com</ThemedText>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor }]}>
+      <ThemedView style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable 
+            onPress={() => Alert.alert('菜单', '菜单功能开发中')}
+            style={({ pressed }) => [
+              styles.headerButton,
+              pressed && styles.buttonPressed
+            ]}>
+            <Ionicons name="menu-outline" size={24} color={textColor} />
+          </Pressable>
+          <ThemedText type="title" style={styles.headerTitle}>MEMO</ThemedText>
+          <Pressable 
+            onPress={() => Alert.alert('搜索', '搜索功能开发中')}
+            style={({ pressed }) => [
+              styles.headerButton,
+              pressed && styles.buttonPressed
+            ]}>
+            <Ionicons name="search-outline" size={24} color={textColor} />
           </Pressable>
         </View>
 
-        <View style={styles.contentCard}>
-          <View style={styles.contentHeader}>
-            <ThemedText style={styles.timestamp}>2021-07-26 17:49:03</ThemedText>
-            <Pressable 
-              onPress={handleMoreOptions}
-              style={({ pressed }) => [
-                styles.moreButton,
-                pressed && styles.buttonPressed
-              ]}>
-              <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
-            </Pressable>
+        <ScrollView style={styles.scrollView}>
+          {/* Editor Card */}
+          <View style={styles.editorCard}>
+            <TextInput
+              style={styles.input}
+              placeholder="What's in your mind?"
+              placeholderTextColor="#999"
+              multiline
+              value={noteText}
+              onChangeText={setNoteText}
+            />
+            
+            {/* Toolbar */}
+            <View style={styles.toolbar}>
+              <Pressable 
+                onPress={() => handleToolbarPress('hashtag')}
+                style={({ pressed }) => [
+                  styles.toolbarButton,
+                  pressed && styles.buttonPressed
+                ]}>
+                <ThemedText style={styles.hashTag}>#</ThemedText>
+              </Pressable>
+              <Pressable 
+                onPress={() => handleToolbarPress('list')}
+                style={({ pressed }) => [
+                  styles.toolbarButton,
+                  pressed && styles.buttonPressed
+                ]}>
+                <Ionicons name="list" size={24} color="#666" />
+              </Pressable>
+              <Pressable 
+                onPress={() => handleToolbarPress('bold')}
+                style={({ pressed }) => [
+                  styles.toolbarButton,
+                  pressed && styles.buttonPressed
+                ]}>
+                <ThemedText style={styles.boldB}>B</ThemedText>
+              </Pressable>
+              <Pressable 
+                onPress={() => handleToolbarPress('image')}
+                style={({ pressed }) => [
+                  styles.toolbarButton,
+                  pressed && styles.buttonPressed
+                ]}>
+                <Ionicons name="image-outline" size={24} color="#666" />
+              </Pressable>
+              <View style={styles.spacer} />
+              <Pressable 
+                onPress={handleSend}
+                style={({ pressed }) => [
+                  styles.sendButton,
+                  pressed && styles.sendButtonPressed
+                ]}>
+                <Ionicons name="arrow-forward" size={20} color="#fff" />
+              </Pressable>
+            </View>
           </View>
-          
-          <ThemedText style={styles.contentText}>
-            Independent-mindedness seems to be more a matter of nature than nurture. Which means if you pick the wrong type of work, you're going to be unhappy. If you're naturally independent-minded, you're going to find it frustrating to be a middle manager. And if you're naturally
-          </ThemedText>
-        </View>
-      </ScrollView>
-    </ThemedView>
+
+          {/* Content Cards */}
+          {notes.map(note => (
+            <View key={note.id} style={styles.contentCard}>
+              <View style={styles.contentHeader}>
+                <ThemedText style={styles.timestamp}>{note.timestamp}</ThemedText>
+                <Pressable 
+                  onPress={() => handleMoreOptions()}
+                  style={({ pressed }) => [
+                    styles.moreButton,
+                    pressed && styles.buttonPressed
+                  ]}>
+                  <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
+                </Pressable>
+              </View>
+              
+              <ThemedText style={styles.contentText}>
+                {note.content}
+              </ThemedText>
+
+              {note.tags.length > 0 && (
+                <View style={styles.tags}>
+                  {note.tags.map((tag, index) => (
+                    <Pressable key={index}>
+                      <ThemedText style={styles.tag}>{tag}</ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
